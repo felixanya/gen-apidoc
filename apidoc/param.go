@@ -37,6 +37,7 @@ func (ad *ApiDefine) SetParams(v interface{}) {
 
 func (ad *ApiDefine) SetParamExample(v interface{}) {
 	ad.ParamExample = newExample(v, exampleTypeParam)
+	ad.ParamExample.Title = "Parameter"
 }
 
 func (ad *ApiDefine) AddParam(field, description string) {

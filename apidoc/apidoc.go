@@ -1,14 +1,15 @@
 package apidoc
 
 import (
+	"bufio"
 	"bytes"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
 const (
-	writeFileName      = "apidoc_gen.go"
+	writeFileName      = ".apidoc_gen.go"
 	blockCommentStart  = "/**"
 	blockCommentPrefix = " * "
 	blockCommentEnd    = " */"
@@ -18,7 +19,6 @@ const (
 
 type (
 	ApiDefine struct {
-		PackageName    string
 		Name           string
 		Group          string
 		Request        *http.Request
@@ -28,6 +28,8 @@ type (
 		ParamExample   *Example
 		Success        []*ApiSuccess
 		SuccessExample *Example
+		Errors         []*ApiError
+		ErrorExample   *Example
 		//Errors      []*ApiError
 	}
 )
@@ -50,32 +52,71 @@ func New2(req *http.Request, name string) ApiDefine {
 		}
 	}
 	return ApiDefine{
-		Request:     req,
-		PackageName: packageName,
-		Group:       strings.Title(packageName),
-		Name:        name,
+		Request: req,
+		Group:   strings.Title(packageName),
+		Name:    name,
 	}
 }
 
-func New(packageName, name string) ApiDefine {
+func InitFile(packageName string) error {
+	os.Remove(writeFileName)
+
+	contents := generateApidocHeader(packageName)
+	err := writeFile(contents)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ClearFile() {
+	os.Remove(writeFileName)
+}
+
+func New(name string) ApiDefine {
 	return ApiDefine{
-		PackageName: packageName,
-		Name:        name,
+		Name: name,
 	}
 }
 
-func (ad *ApiDefine) WriteFile() {
+func (ad *ApiDefine) Write() error {
+
 	contents := ad.generateApidoc()
-	// ファイルに書き込み
-	ioutil.WriteFile(writeFileName, contents, 0644) // 0644はpermission
+	err := writeFile(contents)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func writeFile(contents []byte) error {
+
+	writeFile, err := os.OpenFile(writeFileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+
+	writer := bufio.NewWriter(writeFile)
+	if _, err := writer.Write(contents); err != nil {
+		return err
+	}
+	writer.Flush()
+	return nil
+}
+
+func generateApidocHeader(packageName string) []byte {
+
+	var b bytes.Buffer
+	b.Write([]byte("package " + packageName))
+	b.Write(bbreak)
+	b.Write(bbreak)
+
+	return b.Bytes()
 }
 
 func (ad *ApiDefine) generateApidoc() []byte {
 
 	var b bytes.Buffer
-	b.Write([]byte("package " + ad.PackageName))
-	b.Write(bbreak)
-	b.Write(bbreak)
 
 	// Define
 	b.Write(bStartLine)
@@ -127,11 +168,17 @@ func (ad *ApiDefine) generateApidoc() []byte {
 	}
 
 	b.Write(bEndLine)
+	b.Write(bbreak)
+	b.Write(bbreak)
 
 	return b.Bytes()
 }
 
-func WriteRow(bb *bytes.Buffer, b []byte) {
+func WriteRow(bb *bytes.Buffer, text string) {
+	WriteRowByte(bb, []byte(text))
+}
+
+func WriteRowByte(bb *bytes.Buffer, b []byte) {
 	bb.Write(bPrefix)
 	bb.Write(b)
 	bb.Write(bbreak)

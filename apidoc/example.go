@@ -13,10 +13,11 @@ const (
 
 type (
 	Example struct {
-		Data     []byte
-		Title    string
-		TypeName string
-		Typ      ExampleType //Example Type
+		Data              []byte
+		Title             string
+		TypeName          string
+		Typ               ExampleType //Example Type
+		ProtocolAndStatus string
 	}
 	ExampleType string
 )
@@ -46,9 +47,11 @@ func (e *Example) WriteIndentString(b *bytes.Buffer) {
 	}
 	b.Write(bbreak)
 
-	b.Write(bPrefix)
-	b.Write([]byte("HTTP/1.1 200 OK"))
-	b.Write(bbreak)
+	if e.ProtocolAndStatus != "" {
+		b.Write(bPrefix)
+		b.Write([]byte(e.ProtocolAndStatus))
+		b.Write(bbreak)
+	}
 
 	b.Write(bPrefix)
 	json.Indent(b, e.Data, blockCommentPrefix, jsonIndentString)

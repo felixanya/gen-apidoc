@@ -28,6 +28,7 @@ func (ad *ApiDefine) SetHeaders(headers http.Header) {
 
 func (ad *ApiDefine) SetHeaderExample(v interface{}) {
 	ad.HeaderExample = newExample(v, exampleTypeHeader)
+	ad.HeaderExample.Title = "Headers"
 }
 
 func (ad *ApiDefine) AddHeader(key, description string) {

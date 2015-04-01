@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	ApiSuccess struct {
+	ApiError struct {
 		Field       string
 		Description string
 		Group       string
@@ -14,55 +14,55 @@ type (
 	}
 )
 
-func (ad *ApiDefine) SetSuccess(v interface{}) {
+func (ad *ApiDefine) SetError(code int, v interface{}) {
 	rv := reflect.ValueOf(v)
 	rt := reflect.TypeOf(v)
 	ps := objectAnalysis("", rv, rt, nil)
-	var ss []*ApiSuccess
+	var ss []*ApiError
 	for _, p := range ps {
-		ss = append(ss, &ApiSuccess{
+		ss = append(ss, &ApiError{
 			Field:       p.Field,
 			Description: p.Description,
 			Group:       p.Group,
 			TypeName:    p.TypeName,
 		})
 	}
-	ad.Success = ss
+	ad.Errors = ss
 
 	if v != nil {
-		ad.SetSuccessExample(v)
+		ad.SetErrorExample(v)
 	}
 }
 
-func (ad *ApiDefine) SetSuccessExample(v interface{}) {
-	ad.SuccessExample = newExample(v, exampleTypesuccess)
-	ad.SuccessExample.Title = "Response (success)"
-	ad.SuccessExample.ProtocolAndStatus = "HTTP/1.1 200 OK"
+func (ad *ApiDefine) SetErrorExample(v interface{}) {
+	ad.ErrorExample = newExample(v, exampleTypesuccess)
+	ad.ErrorExample.Title = "Response (error)"
+	ad.ErrorExample.ProtocolAndStatus = "HTTP/1.1 200 OK"
 }
 
-func (ad *ApiDefine) AddSuccess(field, description string) {
-	ad.Success = append(ad.Success, &ApiSuccess{
+func (ad *ApiDefine) AddError(field, description string) {
+	ad.Errors = append(ad.Errors, &ApiError{
 		Field:       field,
 		Description: description,
 	})
 }
 
-func (ad *ApiDefine) AddSuccessByOptional(success *ApiSuccess) {
-	ad.Success = append(ad.Success, success)
+func (ad *ApiDefine) AddErrorByOptional(success *ApiError) {
+	ad.Errors = append(ad.Errors, success)
 }
 
 // -----------------------
-// @ApiSuccess
+// @ApiError
 // -----------------------
 
-func (as *ApiSuccess) String() string {
+func (as *ApiError) String() string {
 	return string(as.Byte())
 }
 
-func (as *ApiSuccess) Byte() []byte {
+func (as *ApiError) Byte() []byte {
 	// @ApiParam [(group)] [{type}] [field=defaultValue] [description]
 	var b bytes.Buffer
-	b.Write([]byte("@ApiSuccess"))
+	b.Write([]byte("@ApiError"))
 	if as.Group != "" {
 		b.Write([]byte(" (" + as.Group + ")"))
 	}
