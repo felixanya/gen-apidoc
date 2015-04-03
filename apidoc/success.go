@@ -2,7 +2,6 @@ package apidoc
 
 import (
 	"bytes"
-	"reflect"
 )
 
 type (
@@ -15,9 +14,7 @@ type (
 )
 
 func (ad *ApiDefine) SetSuccess(v interface{}) {
-	rv := reflect.ValueOf(v)
-	rt := reflect.TypeOf(v)
-	ps := objectAnalysis("", rv, rt, nil)
+	ps := objectAnalysis(v)
 	var ss []*ApiSuccess
 	for _, p := range ps {
 		ss = append(ss, &ApiSuccess{
@@ -28,27 +25,35 @@ func (ad *ApiDefine) SetSuccess(v interface{}) {
 		})
 	}
 	ad.Success = ss
+	ad.SetSuccessExample(v)
+}
 
-	if v != nil {
-		ad.SetSuccessExample(v)
+func (ad *ApiDefine) AddSuccess(field, description string) {
+	success := &ApiSuccess{
+		Field:       field,
+		Description: description,
 	}
+	ad.Success = append(ad.Success, success)
+}
+
+func (ad *ApiDefine) AddSuccessByOptional(group, typeName, field, description string) {
+	success := &ApiSuccess{
+		Group:       group,
+		TypeName : typeName,
+		Field:       field,
+		Description: description,
+	}
+	ad.Success = append(ad.Success, success)
+}
+
+func (ad *ApiDefine) AddApiSuccessWithConfig(success *ApiSuccess) {
+	ad.Success = append(ad.Success, success)
 }
 
 func (ad *ApiDefine) SetSuccessExample(v interface{}) {
 	ad.SuccessExample = newExample(v, exampleTypesuccess)
 	ad.SuccessExample.Title = "Response (success)"
 	ad.SuccessExample.ProtocolAndStatus = "HTTP/1.1 200 OK"
-}
-
-func (ad *ApiDefine) AddSuccess(field, description string) {
-	ad.Success = append(ad.Success, &ApiSuccess{
-		Field:       field,
-		Description: description,
-	})
-}
-
-func (ad *ApiDefine) AddSuccessByOptional(success *ApiSuccess) {
-	ad.Success = append(ad.Success, success)
 }
 
 // -----------------------

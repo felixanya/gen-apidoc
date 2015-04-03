@@ -2,7 +2,6 @@ package apidoc
 
 import (
 	"bytes"
-	"reflect"
 )
 
 type (
@@ -15,9 +14,7 @@ type (
 )
 
 func (ad *ApiDefine) SetError(code int, v interface{}) {
-	rv := reflect.ValueOf(v)
-	rt := reflect.TypeOf(v)
-	ps := objectAnalysis("", rv, rt, nil)
+	ps := objectAnalysis(v)
 	var ss []*ApiError
 	for _, p := range ps {
 		ss = append(ss, &ApiError{

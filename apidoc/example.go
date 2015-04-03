@@ -29,7 +29,7 @@ func newExample(v interface{}, et ExampleType) *Example {
 	}
 	return &Example{
 		Data:     b,
-		Title:    "example-title",
+		Title:    "JSON Example",
 		TypeName: "json",
 		Typ:      et,
 	}

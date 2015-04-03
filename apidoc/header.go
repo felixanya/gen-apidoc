@@ -20,15 +20,17 @@ func (ad *ApiDefine) SetHeaders(headers http.Header) {
 	m := map[string]string{}
 	for key, v := range headers {
 		ad.AddHeader(key, "")
-		m[""+key] = strings.Join(v, "")
+		m[key] = strings.Join(v, "")
 	}
 
 	ad.SetHeaderExample(m)
 }
 
 func (ad *ApiDefine) SetHeaderExample(v interface{}) {
-	ad.HeaderExample = newExample(v, exampleTypeHeader)
-	ad.HeaderExample.Title = "Headers"
+	if v != nil {
+		ad.HeaderExample = newExample(v, exampleTypeHeader)
+		ad.HeaderExample.Title = "Headers Example"
+	}
 }
 
 func (ad *ApiDefine) AddHeader(key, description string) {

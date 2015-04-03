@@ -3,7 +3,6 @@ package apidoc
 import (
 	"bytes"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -13,22 +12,23 @@ type (
 		Description  string
 		Group        string
 		TypeName     string
+		Kind         reflect.Kind
 		DefaultValue string
+		Optional  bool
 	}
 	AnalysisOption struct {
 		Index      int
 		Field      reflect.StructField
+		ParentTag  []reflect.StructTag
 		Tag        reflect.StructTag
 		ColumnName string
+		Levels []string
 	}
 )
 
-var ix int64 = 0
-
-func (ad *ApiDefine) SetParams(v interface{}) {
-	rv := reflect.ValueOf(v)
-	rt := reflect.TypeOf(v)
-	ad.Params = objectAnalysis("", rv, rt, nil)
+func (ad *ApiDefine) SetParams(group string, v interface{}) {
+	ad.Group = group
+	ad.Params = objectAnalysis(v)
 
 	if v != nil {
 		ad.SetParamExample(v)
@@ -37,19 +37,30 @@ func (ad *ApiDefine) SetParams(v interface{}) {
 
 func (ad *ApiDefine) SetParamExample(v interface{}) {
 	ad.ParamExample = newExample(v, exampleTypeParam)
-	ad.ParamExample.Title = "Parameter"
+	ad.ParamExample.Title = "Parameter Example"
 }
 
 func (ad *ApiDefine) AddParam(field, description string) {
-	header := &ApiParam{
+	param := &ApiParam{
 		Field:       field,
 		Description: description,
 	}
-	ad.Params = append(ad.Params, header)
+	ad.Params = append(ad.Params, param)
 }
 
-func (ad *ApiDefine) AddApiParamByOptional(header *ApiParam) {
-	ad.Params = append(ad.Params, header)
+func (ad *ApiDefine) AddParamByOptional(group, field, description, defaultValue string) {
+	param := &ApiParam{
+		Group: group,
+		Field:       field,
+		Description: description,
+		DefaultValue : defaultValue,
+		Optional: true,
+	}
+	ad.Params = append(ad.Params, param)
+}
+
+func (ad *ApiDefine) AddApiParamWithConfig(param *ApiParam) {
+	ad.Params = append(ad.Params, param)
 }
 
 // -----------------------
@@ -70,11 +81,15 @@ func (ap *ApiParam) Byte() []byte {
 	if ap.TypeName != "" {
 		b.Write([]byte(" {" + ap.TypeName + "}"))
 	}
-	if ap.DefaultValue != "" {
-		b.Write([]byte(" field=" + ap.DefaultValue))
-	}
 	if ap.Field != "" {
-		b.Write([]byte(" " + ap.Field))
+		str := ap.Field
+		if ap.DefaultValue != "" {
+			str += "=" + ap.DefaultValue
+		}
+		if ap.Optional {
+			str = "[" + str + "]"
+		}
+		b.Write([]byte(" " + str))
 	}
 	if ap.Description != "" {
 		b.Write([]byte(" " + ap.Description))
@@ -82,13 +97,19 @@ func (ap *ApiParam) Byte() []byte {
 	return b.Bytes()
 }
 
-func objectAnalysis(prefix string, rv reflect.Value, rt reflect.Type, option *AnalysisOption) []*ApiParam {
+func objectAnalysis(v interface{}) []*ApiParam {
+	var resp []*ApiParam
+	if v != nil {
+		rv := reflect.ValueOf(v)
+		rt := reflect.TypeOf(v)
+		resp = objectAnalysisDetail(rv, rt, nil)
+	}
+	return resp
+}
+
+func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOption) []*ApiParam {
 
 	var params []*ApiParam
-	if ix > 100 {
-		return params
-	}
-	ix++
 
 	if rt.Kind() == reflect.Ptr ||
 		rt.Kind() == reflect.Slice ||
@@ -98,54 +119,86 @@ func objectAnalysis(prefix string, rv reflect.Value, rt reflect.Type, option *An
 		obj := reflect.New(elem).Elem().Interface()
 		rv = reflect.ValueOf(obj)
 		rt = rv.Type()
-		params = objectAnalysis(prefix+"p", rv, rt, option)
+
+		if option != nil {
+			option.Levels = append(option.Levels, "p")
+		}
+
+		params = objectAnalysisDetail(rv, rt, option)
 
 	} else if rt.Kind() == reflect.Struct {
+
 		//var parentTag string
-		var anonymous bool
-		var parentTagOK bool
+		var exit bool
+		var levels []string
+		var parentTag []reflect.StructTag
+
 		if option != nil {
-			anonymous = option.Field.Anonymous
-			_, parentTagOK = getJSONTag(option.Tag)
+			anonymous := option.Field.Anonymous
+			_, ok := getJSONTag(option.Tag)
+			parentTag = append(option.ParentTag, option.Tag)
+			levels = option.Levels
+			exit = !anonymous && !ok
 		}
-		if option == nil || parentTagOK || anonymous {
+
+		if option == nil || !exit {
+
 			for i := 0; i < rt.NumField(); i++ {
-				//fmt.Println(i,rv.Field(i),rv.Field(i).Type.Kind())
-				val := rv.Field(i)
-				typ := val.Type()
+
 				typField := rt.Field(i)
-				//if tag, ok := getJSONTag(typField.Tag); ok {
-				//fmt.Println("tag=ok===", typField.Name, tag)
+				valField := rv.Field(i)
+				typ := valField.Type()
+
+				//tags := ""
+				//if option != nil {
+				//	for _,t := range parentTag {
+				//		tags += t.Get("json") + "||"
+				//	}
+				//}
+				//fmt.Println("####",i,typField.Tag.Get("json"),"paremt:",tags)
+
 				opt := &AnalysisOption{
 					Index:      i,
 					Field:      typField,
 					Tag:        typField.Tag,
 					ColumnName: typField.Name,
+					ParentTag: parentTag,
+					Levels: append(levels, "s"),
 				}
-				//fmt.Println("PkgPath", rt.Field(i).Name, typ.PkgPath())
-				//doc := "[" + t.Get("doc") + "]"
-				p := objectAnalysis(prefix+rt.Name()+strconv.Itoa(i), val, typ, opt)
+				p := objectAnalysisDetail(valField, typ, opt)
 				params = append(params, p...)
-				//} else {
-				//	fmt.Println("tag=ng===", typField.Name, typField.Tag.Get("json"))
-				//}
 			}
 		}
 
 	} else if option != nil {
 
-		if tag, ok := getJSONTag(option.Tag); ok {
+		tags := append(option.ParentTag, option.Tag)
+
+		field := ""
+		for _, tag := range tags {
+			if s, ok := getJSONTag(tag); ok {
+				if field != "" {
+					field += "."
+				}
+				field += s
+			}
+		}
+
+		//println(">>>",option.Tag.Get("json"), field, option.Levels, option.Index)
+
+		if _, ok := getJSONTag(option.Tag); ok {
+
 			p := &ApiParam{
-				Field:       tag,
-				Description: "It is " + tag + ".",
+				Field:       field,
+				Description: "It is " + field + ".",
 				//Group:        prefix,
 				TypeName:     rt.Name(),
+				Kind:         rt.Kind(),
 				DefaultValue: "",
 			}
 			if tag := getDocTag(option.Tag); tag != "" {
 				p.Description = tag
 			}
-			//}
 			params = []*ApiParam{p}
 		}
 	}
@@ -153,19 +206,33 @@ func objectAnalysis(prefix string, rv reflect.Value, rt reflect.Type, option *An
 }
 
 func getJSONTag(tag reflect.StructTag) (string, bool) {
-	str := tag.Get("json")
-	if str != "" {
-		items := strings.Split(str, ",")
-		if len(items) > 0 && items[0] != "-" && items[0] != "" {
-			return items[0], true
-		}
-	}
-	return "", false
+	return getTagText(tag.Get("json"))
 }
 
 func getDocTag(tag reflect.StructTag) string {
-	if str := tag.Get("doc"); str != "" {
-		return str
+	s, _ := getTagText(tag.Get("doc"))
+	return s
+}
+
+func getTagText(str string) (string, bool) {
+
+	if str == "" || str == "-" {
+		return "", false
 	}
-	return ""
+
+	items := strings.Split(str, ",")
+
+	value := ""
+	for i, v := range items {
+		if i == 0 {
+			if v == "" {
+				break
+			}
+			value = v
+		} else if v == "omitempty" {
+			value = ""
+			break
+		}
+	}
+	return value, value != ""
 }
