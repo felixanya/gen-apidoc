@@ -65,7 +65,7 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 	// Define
 	b.Write(bStartLine)
 	b.Write(bPrefix)
-	b.Write([]byte("@ApiDefine " + ad.Name))
+	b.Write([]byte("@apiDefine " + ad.Name))
 	b.Write(bbreak)
 
 	b.Write(bSpaceLine)
@@ -73,37 +73,40 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 	// Header
 	if len(ad.Headers) > 0 {
 		for _, header := range ad.Headers {
-			b.Write(bPrefix)
-			b.Write(header.Byte())
-			b.Write(bbreak)
+			WriteRowByte(b, header.Byte())
+			//b.Write(bPrefix)
+			//b.Write(header.Byte())
+			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}
 	if ad.HeaderExample != nil {
 		ad.HeaderExample.WriteIndentString(b)
+		b.Write(bSpaceLine)
 	}
-	b.Write(bSpaceLine)
 
 	// Param
 	if len(ad.Params) > 0 {
 		for _, param := range ad.Params {
-			b.Write(bPrefix)
-			b.Write(param.Byte())
-			b.Write(bbreak)
+			WriteRowByte(b, param.Byte())
+			//b.Write(bPrefix)
+			//b.Write(param.Byte())
+			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}
 	if ad.ParamExample != nil {
 		ad.ParamExample.WriteIndentString(b)
+		b.Write(bSpaceLine)
 	}
-	b.Write(bSpaceLine)
 
 	// Success
 	if len(ad.Success) > 0 {
 		for _, param := range ad.Success {
-			b.Write(bPrefix)
-			b.Write(param.Byte())
-			b.Write(bbreak)
+			WriteRowByte(b, param.Byte())
+			//b.Write(bPrefix)
+			//b.Write(param.Byte())
+			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}

@@ -74,7 +74,7 @@ func (ap *ApiParam) String() string {
 func (ap *ApiParam) Byte() []byte {
 	// @ApiParam [(group)] [{type}] [field=defaultValue] [description]
 	var b bytes.Buffer
-	b.Write([]byte("@ApiParam"))
+	b.Write([]byte("@apiParam"))
 	if ap.Group != "" {
 		b.Write([]byte(" (" + ap.Group + ")"))
 	}

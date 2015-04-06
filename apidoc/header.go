@@ -56,7 +56,7 @@ func (ah *ApiHeader) String() string {
 func (ah *ApiHeader) Byte() []byte {
 	// @ApiHeader [(group)] [{type}] [field=defaultValue] [description]
 	var b bytes.Buffer
-	b.Write([]byte("@ApiHeader"))
+	b.Write([]byte("@apiHeader"))
 	if ah.Group != "" {
 		b.Write([]byte(" (" + ah.Group + ")"))
 	}

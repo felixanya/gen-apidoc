@@ -59,7 +59,7 @@ func (as *ApiError) String() string {
 func (as *ApiError) Byte() []byte {
 	// @ApiParam [(group)] [{type}] [field=defaultValue] [description]
 	var b bytes.Buffer
-	b.Write([]byte("@ApiError"))
+	b.Write([]byte("@apiError"))
 	if as.Group != "" {
 		b.Write([]byte(" (" + as.Group + ")"))
 	}
