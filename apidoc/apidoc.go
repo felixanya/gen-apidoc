@@ -15,6 +15,7 @@ type (
 		OutputFileName           string
 		PackageName          string
 		ApiDefines         []ApiDefine
+		writeCount int
 	}
 )
 
@@ -31,17 +32,25 @@ func (doc *ApiDocument) New(name string) ApiDefine {
 		Name: name,
 	}
 }
+
 func (doc *ApiDocument) Add(define ApiDefine) {
 	doc.ApiDefines = append(doc.ApiDefines, define)
+}
+
+func (doc *ApiDocument) Clear() {
+	doc.ApiDefines = []ApiDefine{}
 }
 
 func (doc *ApiDocument) Write() error {
 
 	var bt bytes.Buffer
-	
+
 	// Header
-	writeApidocHeader(doc.PackageName, &bt)
-	
+	if doc.writeCount == 0 {
+		writeApidocHeader(doc.PackageName, &bt)
+	}
+	doc.writeCount++
+
 	// Define items
 	for _, define := range doc.ApiDefines {
 		define.WriteBytes(&bt)
