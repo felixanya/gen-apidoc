@@ -23,7 +23,7 @@ type (
 		Params         []*ApiParam
 		ParamExample   *Example
 		Success        []*ApiSuccess
-		SuccessExample *Example
+		SuccessExample []*Example
 		Errors         []*ApiError
 		ErrorExample   *Example
 		//Errors      []*ApiError
@@ -74,9 +74,6 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 	if len(ad.Headers) > 0 {
 		for _, header := range ad.Headers {
 			WriteRowByte(b, header.Byte())
-			//b.Write(bPrefix)
-			//b.Write(header.Byte())
-			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}
@@ -89,9 +86,6 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 	if len(ad.Params) > 0 {
 		for _, param := range ad.Params {
 			WriteRowByte(b, param.Byte())
-			//b.Write(bPrefix)
-			//b.Write(param.Byte())
-			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}
@@ -104,14 +98,13 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 	if len(ad.Success) > 0 {
 		for _, param := range ad.Success {
 			WriteRowByte(b, param.Byte())
-			//b.Write(bPrefix)
-			//b.Write(param.Byte())
-			//b.Write(bbreak)
 		}
 		b.Write(bSpaceLine)
 	}
-	if ad.SuccessExample != nil {
-		ad.SuccessExample.WriteIndentString(b)
+	if len(ad.SuccessExample) > 0 {
+		for _, successExample := range ad.SuccessExample {
+			successExample.WriteIndentString(b)
+		}
 	}
 
 	b.Write(bEndLine)

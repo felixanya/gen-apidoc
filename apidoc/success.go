@@ -13,47 +13,55 @@ type (
 	}
 )
 
-func (ad *ApiDefine) SetSuccess(v interface{}) {
+func (ad *ApiDefine) SetSuccessWithExample(title string, v interface{}) {
+	ad.Success = []*ApiSuccess{}
+	ad.SuccessExample = []*Example{}
+	ad.AddSuccessWithExample(title, v)
+}
+
+func (ad *ApiDefine) AddSuccessWithExample(title string, v interface{}) {
 	ps := objectAnalysis(v)
 	var ss []*ApiSuccess
 	for _, p := range ps {
 		ss = append(ss, &ApiSuccess{
 			Field:       p.Field,
 			Description: p.Description,
-			Group:       p.Group,
+			Group:       title,
 			TypeName:    p.TypeName,
 		})
 	}
-	ad.Success = ss
-	ad.SetSuccessExample(v)
+	ad.Success = append(ad.Success, ss...)
+	ad.AddSuccessExample(title, v)
 }
 
-func (ad *ApiDefine) AddSuccess(field, description string) {
-	success := &ApiSuccess{
-		Field:       field,
-		Description: description,
+func (ad *ApiDefine) AddSuccess(field string, params ...string) {
+	success := &ApiSuccess{Field: field}
+	if len(params) > 0 {
+		success.Description = params[0]
+	}
+	if len(params) > 1 {
+		success.Group = params[1]
+	}
+	if len(params) > 2 {
+		success.Field = params[2]
 	}
 	ad.Success = append(ad.Success, success)
 }
 
-func (ad *ApiDefine) AddSuccessByOptional(group, typeName, field, description string) {
-	success := &ApiSuccess{
-		Group:       group,
-		TypeName : typeName,
-		Field:       field,
-		Description: description,
+func (ad *ApiDefine) SetSuccessExample(title string, v interface{}) {
+	ad.SuccessExample = []*Example{}
+	ad.AddSuccessExample(title, v)
+}
+
+func (ad *ApiDefine) AddSuccessExample(title string, v interface{}) {
+	example := newExample(v, exampleTypesuccess)
+	example.ProtocolAndStatus = "HTTP/1.1 200 OK"
+	if title != "" {
+		example.Title = title
+	} else {
+		example.Title = "Response (success)"
 	}
-	ad.Success = append(ad.Success, success)
-}
-
-func (ad *ApiDefine) AddApiSuccessWithConfig(success *ApiSuccess) {
-	ad.Success = append(ad.Success, success)
-}
-
-func (ad *ApiDefine) SetSuccessExample(v interface{}) {
-	ad.SuccessExample = newExample(v, exampleTypesuccess)
-	ad.SuccessExample.Title = "Response (success)"
-	ad.SuccessExample.ProtocolAndStatus = "HTTP/1.1 200 OK"
+	ad.SuccessExample = append(ad.SuccessExample, example)
 }
 
 // -----------------------
