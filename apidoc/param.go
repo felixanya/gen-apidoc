@@ -28,7 +28,7 @@ type (
 
 func (ad *ApiDefine) SetParams(group string, v interface{}) {
 	ad.Group = group
-	ad.Params = objectAnalysis(v)
+	ad.Params = objectAnalysis(group, v)
 
 	if v != nil {
 		ad.SetParamExample(v)
@@ -97,17 +97,17 @@ func (ap *ApiParam) Byte() []byte {
 	return b.Bytes()
 }
 
-func objectAnalysis(v interface{}) []*ApiParam {
+func objectAnalysis(group string, v interface{}) []*ApiParam {
 	var resp []*ApiParam
 	if v != nil {
 		rv := reflect.ValueOf(v)
 		rt := reflect.TypeOf(v)
-		resp = objectAnalysisDetail(rv, rt, nil)
+		resp = objectAnalysisDetail(group, rv, rt, nil)
 	}
 	return resp
 }
 
-func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOption) []*ApiParam {
+func objectAnalysisDetail(group string, rv reflect.Value, rt reflect.Type, option *AnalysisOption) []*ApiParam {
 
 	var params []*ApiParam
 
@@ -124,7 +124,7 @@ func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOpt
 			option.Levels = append(option.Levels, "p")
 		}
 
-		params = objectAnalysisDetail(rv, rt, option)
+		params = objectAnalysisDetail(group, rv, rt, option)
 
 	} else if rt.Kind() == reflect.Struct {
 
@@ -135,10 +135,14 @@ func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOpt
 
 		if option != nil {
 			anonymous := option.Field.Anonymous
-			_, ok := getJSONTag(option.Tag)
+			_, jsonOK := getJSONTag(option.Tag)
 			parentTag = append(option.ParentTag, option.Tag)
 			levels = option.Levels
-			exit = !anonymous && !ok
+			exit = !anonymous && !jsonOK
+
+			// struct用の記述を出力
+			p := generateApiParams(group, rt.Name(), option)
+			params = append(params, p...)
 		}
 
 		if option == nil || !exit {
@@ -149,15 +153,7 @@ func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOpt
 				valField := rv.Field(i)
 				typ := valField.Type()
 
-				//tags := ""
-				//if option != nil {
-				//	for _,t := range parentTag {
-				//		tags += t.Get("json") + "||"
-				//	}
-				//}
-				//fmt.Println("####",i,typField.Tag.Get("json"),"paremt:",tags)
-
-				opt := &AnalysisOption{
+				option = &AnalysisOption{
 					Index:      i,
 					Field:      typField,
 					Tag:        typField.Tag,
@@ -165,42 +161,52 @@ func objectAnalysisDetail(rv reflect.Value, rt reflect.Type, option *AnalysisOpt
 					ParentTag: parentTag,
 					Levels: append(levels, "s"),
 				}
-				p := objectAnalysisDetail(valField, typ, opt)
+				p := objectAnalysisDetail(group, valField, typ, option)
 				params = append(params, p...)
 			}
 		}
 
-	} else if option != nil {
+	} else {
+		params = generateApiParams(group, rt.Name(), option)
+	}
+	return params
+}
 
-		tags := append(option.ParentTag, option.Tag)
+func generateApiParams(group, typeName string, option *AnalysisOption) []*ApiParam {
 
-		field := ""
-		for _, tag := range tags {
-			if s, ok := getJSONTag(tag); ok {
-				if field != "" {
-					field += "."
-				}
-				field += s
+	var params []*ApiParam
+
+	if option == nil {
+		return params
+	}
+
+	tags := append(option.ParentTag, option.Tag)
+
+	field := ""
+	for _, tag := range tags {
+		if s, ok := getJSONTag(tag); ok {
+			if field != "" {
+				field += "."
 			}
+			field += s
 		}
+	}
 
-		//println(">>>",option.Tag.Get("json"), field, option.Levels, option.Index)
+	//println(">>>",option.Tag.Get("json"), field, "levels=", option.Levels, option.Index)
 
-		if _, ok := getJSONTag(option.Tag); ok {
+	if _, ok := getJSONTag(option.Tag); ok {
 
-			p := &ApiParam{
-				Field:       field,
-				Description: "It is " + field + ".",
-				//Group:        prefix,
-				TypeName:     rt.Name(),
-				Kind:         rt.Kind(),
-				DefaultValue: "",
-			}
-			if tag := getDocTag(option.Tag); tag != "" {
-				p.Description = tag
-			}
-			params = []*ApiParam{p}
+		p := &ApiParam{
+			Field:       field,
+			Description: "It is " + field + ".",
+			Group:        group,
+			TypeName:     convertJsonTypeName(typeName),
+			DefaultValue: "",
 		}
+		if tag := getDocTag(option.Tag); tag != "" {
+			p.Description = tag
+		}
+		params = []*ApiParam{p}
 	}
 	return params
 }
@@ -212,6 +218,19 @@ func getJSONTag(tag reflect.StructTag) (string, bool) {
 func getDocTag(tag reflect.StructTag) string {
 	s, _ := getTagText(tag.Get("doc"))
 	return s
+}
+
+func convertJsonTypeName(typeName string) string {
+	switch typeName {
+		case "int","int8","int16","int32","int64",
+			"uint","uint8","uint16","uint32","uint64":
+			return "integer"
+		case "Time":
+		return "string[RFC3339]"
+		case "ObjectId":
+		return "string"
+	}
+	return typeName
 }
 
 func getTagText(str string) (string, bool) {

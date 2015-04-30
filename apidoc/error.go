@@ -14,7 +14,7 @@ type (
 )
 
 func (ad *ApiDefine) SetError(code int, v interface{}) {
-	ps := objectAnalysis(v)
+	ps := objectAnalysis("error", v)
 	var ss []*ApiError
 	for _, p := range ps {
 		ss = append(ss, &ApiError{

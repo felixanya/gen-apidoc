@@ -20,7 +20,7 @@ func (ad *ApiDefine) SetSuccessWithExample(title string, v interface{}) {
 }
 
 func (ad *ApiDefine) AddSuccessWithExample(title string, v interface{}) {
-	ps := objectAnalysis(v)
+	ps := objectAnalysis("success", v)
 	var ss []*ApiSuccess
 	for _, p := range ps {
 		ss = append(ss, &ApiSuccess{
