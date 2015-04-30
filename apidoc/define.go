@@ -25,7 +25,7 @@ type (
 		Success        []*ApiSuccess
 		SuccessExample []*Example
 		Errors         []*ApiError
-		ErrorExample   *Example
+		ErrorExample   []*Example
 		//Errors      []*ApiError
 	}
 )

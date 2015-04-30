@@ -2,6 +2,8 @@ package apidoc
 
 import (
 	"bytes"
+	"fmt"
+	"net/http"
 )
 
 type (
@@ -12,27 +14,6 @@ type (
 		TypeName    string
 	}
 )
-
-func (ad *ApiDefine) SetSuccessWithExample(title string, v interface{}) {
-	ad.Success = []*ApiSuccess{}
-	ad.SuccessExample = []*Example{}
-	ad.AddSuccessWithExample(title, v)
-}
-
-func (ad *ApiDefine) AddSuccessWithExample(title string, v interface{}) {
-	ps := objectAnalysis("success", v)
-	var ss []*ApiSuccess
-	for _, p := range ps {
-		ss = append(ss, &ApiSuccess{
-			Field:       p.Field,
-			Description: p.Description,
-			Group:       title,
-			TypeName:    p.TypeName,
-		})
-	}
-	ad.Success = append(ad.Success, ss...)
-	ad.AddSuccessExample(title, v)
-}
 
 func (ad *ApiDefine) AddSuccess(field string, params ...string) {
 	success := &ApiSuccess{Field: field}
@@ -48,14 +29,54 @@ func (ad *ApiDefine) AddSuccess(field string, params ...string) {
 	ad.Success = append(ad.Success, success)
 }
 
-func (ad *ApiDefine) SetSuccessExample(title string, v interface{}) {
+func (ad *ApiDefine) SetSuccessWithExample(title string, v interface{}) {
+	ad.Success = []*ApiSuccess{}
 	ad.SuccessExample = []*Example{}
+	ad.AddSuccessWithExampleAndStatus(title, v, http.StatusOK)
+}
+
+func (ad *ApiDefine) SetSuccessWithExampleAndStatus(title string, v interface{}, status int) {
+	ad.Success = []*ApiSuccess{}
+	ad.SuccessExample = []*Example{}
+	ad.AddSuccessWithExampleAndStatus(title, v, status)
+}
+
+func (ad *ApiDefine) AddSuccessWithExample(title string, v interface{}) {
+	ad.AddSuccessWithExampleAndStatus(title, v, http.StatusOK)
+}
+
+func (ad *ApiDefine) AddSuccessWithExampleAndStatus(title string, v interface{}, status int) {
+	ps := objectAnalysis("success", v)
+	var ss []*ApiSuccess
+	for _, p := range ps {
+		ss = append(ss, &ApiSuccess{
+			Field:       p.Field,
+			Description: p.Description,
+			Group:       title,
+			TypeName:    p.TypeName,
+		})
+	}
+	ad.Success = append(ad.Success, ss...)
 	ad.AddSuccessExample(title, v)
 }
 
+func (ad *ApiDefine) SetSuccessExample(title string, v interface{}) {
+	ad.SuccessExample = []*Example{}
+	ad.AddSuccessExampleWithStatus(title, v, http.StatusOK)
+}
+
+func (ad *ApiDefine) SetSuccessExampleWithStatus(title string, v interface{}, status int) {
+	ad.SuccessExample = []*Example{}
+	ad.AddSuccessExampleWithStatus(title, v, status)
+}
+
 func (ad *ApiDefine) AddSuccessExample(title string, v interface{}) {
-	example := newExample(v, exampleTypesuccess)
-	example.ProtocolAndStatus = "HTTP/1.1 200 OK"
+	ad.AddSuccessExampleWithStatus(title, v, http.StatusOK)
+}
+
+func (ad *ApiDefine) AddSuccessExampleWithStatus(title string, v interface{}, status int) {
+	example := newExample(v, exampleTypesuccess, status)
+	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d OK", status)
 	if title != "" {
 		example.Title = title
 	} else {

@@ -18,11 +18,12 @@ type (
 		TypeName          string
 		Typ               ExampleType //Example Type
 		ProtocolAndStatus string
+		Status int
 	}
 	ExampleType string
 )
 
-func newExample(v interface{}, et ExampleType) *Example {
+func newExample(v interface{}, et ExampleType, status int) *Example {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return nil
@@ -32,6 +33,7 @@ func newExample(v interface{}, et ExampleType) *Example {
 		Title:    "JSON Example",
 		TypeName: "json",
 		Typ:      et,
+		Status:   status,
 	}
 }
 

@@ -36,7 +36,7 @@ func (ad *ApiDefine) SetParams(group string, v interface{}) {
 }
 
 func (ad *ApiDefine) SetParamExample(v interface{}) {
-	ad.ParamExample = newExample(v, exampleTypeParam)
+	ad.ParamExample = newExample(v, exampleTypeParam, 0)
 	ad.ParamExample.Title = "Parameter Example"
 }
 
