@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"reflect"
 	"strings"
+	"fmt"
 )
 
 type (
@@ -141,7 +142,8 @@ func objectAnalysisDetail(group string, rv reflect.Value, rt reflect.Type, optio
 			exit = !anonymous && !jsonOK
 
 			// struct用の記述を出力
-			p := generateApiParams(group, rt.Name(), option)
+			typeName := fmt.Sprintf("Object[%s]", rt.Name())
+			p := generateApiParams(group, typeName, option)
 			params = append(params, p...)
 		}
 
@@ -225,7 +227,7 @@ func convertJsonTypeName(typeName string) string {
 		case "int","int8","int16","int32","int64",
 			"uint","uint8","uint16","uint32","uint64":
 			return "integer"
-		case "Time":
+		case "Object[Time]":
 		return "string[RFC3339]"
 		case "ObjectId":
 		return "string"
