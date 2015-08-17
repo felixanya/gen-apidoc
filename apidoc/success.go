@@ -75,7 +75,7 @@ func (ad *ApiDefine) AddSuccessExample(title string, v interface{}) {
 }
 
 func (ad *ApiDefine) AddSuccessExampleWithStatus(title string, v interface{}, status int) {
-	example := newExample(v, exampleTypesuccess, status)
+	example := newExample(v, exampleTypeSuccess, status)
 	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d OK", status)
 	if title != "" {
 		example.Title = title

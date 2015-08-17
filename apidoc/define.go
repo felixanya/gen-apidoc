@@ -107,6 +107,19 @@ func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {
 		}
 	}
 
+	// Errors
+	if len(ad.Errors) > 0 {
+		for _, param := range ad.Errors {
+			WriteRowByte(b, param.Byte())
+		}
+		b.Write(bSpaceLine)
+	}
+	if len(ad.ErrorExample) > 0 {
+		for _, errorExample := range ad.ErrorExample {
+			errorExample.WriteIndentString(b)
+		}
+	}
+
 	b.Write(bEndLine)
 	b.Write(bbreak)
 	b.Write(bbreak)

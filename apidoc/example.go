@@ -8,7 +8,8 @@ import (
 const (
 	exampleTypeHeader  ExampleType = "@apiHeaderExample"
 	exampleTypeParam   ExampleType = "@apiParamExample"
-	exampleTypesuccess ExampleType = "@apiSuccessExample"
+	exampleTypeSuccess ExampleType = "@apiSuccessExample"
+	exampleTypeError   ExampleType = "@apiErrorExample"
 )
 
 type (

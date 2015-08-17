@@ -55,7 +55,7 @@ func (ad *ApiDefine) SetErrorExample(title string, v interface{}, status int) {
 }
 
 func (ad *ApiDefine) AddErrorExample(title string, v interface{}, status int) {
-	example := newExample(v, exampleTypesuccess, status)
+	example := newExample(v, exampleTypeError, status)
 	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d ERROR", status)
 	if title != "" {
 		example.Title = title
