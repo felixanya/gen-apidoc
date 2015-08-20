@@ -2,7 +2,6 @@ package apidoc
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 )
 
@@ -14,6 +13,20 @@ type (
 		TypeName    string
 	}
 )
+
+func NewSuccessParam(data interface{}) []*ApiSuccess {
+	ps := objectAnalysis("success", data)
+	var ss []*ApiSuccess
+	for _, p := range ps {
+		ss = append(ss, &ApiSuccess{
+			Field:       p.Field,
+			Description: p.Description,
+			//Group:       group,
+			TypeName:    p.TypeName,
+		})
+	}
+	return ss
+}
 
 func (ad *ApiDefine) AddSuccess(field string, params ...string) {
 	success := &ApiSuccess{Field: field}
@@ -75,13 +88,10 @@ func (ad *ApiDefine) AddSuccessExample(title string, v interface{}) {
 }
 
 func (ad *ApiDefine) AddSuccessExampleWithStatus(title string, v interface{}, status int) {
-	example := newExample(v, exampleTypeSuccess, status)
-	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d OK", status)
-	if title != "" {
-		example.Title = title
-	} else {
-		example.Title = "Response (success)"
+	if title == "" {
+		title = "Response (success)"
 	}
+	example := newExample(title, v, exampleTypeSuccess, status)
 	ad.SuccessExample = append(ad.SuccessExample, example)
 }
 

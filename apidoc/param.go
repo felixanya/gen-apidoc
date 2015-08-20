@@ -37,8 +37,7 @@ func (ad *ApiDefine) SetParams(group string, v interface{}) {
 }
 
 func (ad *ApiDefine) SetParamExample(v interface{}) {
-	ad.ParamExample = newExample(v, exampleTypeParam, 0)
-	ad.ParamExample.Title = "Parameter Example"
+	ad.ParamExample = newExample("Parameter Example", v, exampleTypeParam, 0)
 }
 
 func (ad *ApiDefine) AddParam(field, description string) {
@@ -250,9 +249,9 @@ func getTagText(str string) (string, bool) {
 				break
 			}
 			value = v
-		} else if v == "omitempty" {
-			value = ""
-			break
+//		} else if v == "omitempty" {
+//			value = ""
+//			break
 		}
 	}
 	return value, value != ""

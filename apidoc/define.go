@@ -3,6 +3,8 @@ package apidoc
 import (
 	"bytes"
 	"net/http"
+	"reflect"
+	"fmt"
 )
 
 const (
@@ -58,6 +60,55 @@ func New(name string) ApiDefine {
 	return ApiDefine{
 		Name: name,
 	}
+}
+
+func (ad *ApiDefine) AddParams(vs ...interface{}) *ApiDefine {
+	for _, v := range vs {
+		rv := reflect.ValueOf(v)
+		if rv.Kind() != reflect.Slice {
+			ad.addParams(v)
+			continue
+		}
+		// slice は分解して実行
+		for i := 0; i < rv.Len(); i++ {
+			ad.addParams(rv.Index(i).Interface())
+		}
+	}
+	return ad
+}
+
+func (ad *ApiDefine) addParams(v interface{}) *ApiDefine {
+	// parameter の type を判定して、id,name,subname を返す
+	switch t := v.(type) {
+		case *ApiHeader:
+		ad.Headers = append(ad.Headers, v.(*ApiHeader))
+		case *ApiParam:
+		ad.Params = append(ad.Params, v.(*ApiParam))
+		case *ApiSuccess:
+		ad.Success = append(ad.Success, v.(*ApiSuccess))
+		case *ApiError:
+		ad.Errors = append(ad.Errors, v.(*ApiError))
+		default:
+		panic(fmt.Sprintf("failed to add %v type invalid for apiDefine, %v", t))
+	}
+	return ad
+}
+
+func (ad *ApiDefine) AddExample(e *Example) *ApiDefine {
+	// parameter の type を判定して、id,name,subname を返す
+	switch e.typ {
+		case exampleTypeHeader:
+		ad.HeaderExample = e
+		case exampleTypeParam:
+		ad.ParamExample = e
+		case exampleTypeSuccess:
+		ad.SuccessExample = append(ad.SuccessExample, e)
+		case exampleTypeError:
+		ad.ErrorExample = append(ad.ErrorExample, e)
+		default:
+		panic(fmt.Sprintf("failed to add example %v type invalid for apiDefine"))
+	}
+	return ad
 }
 
 func (ad *ApiDefine) WriteBytes(b *bytes.Buffer) {

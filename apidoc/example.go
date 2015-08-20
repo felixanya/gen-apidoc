@@ -1,8 +1,10 @@
 package apidoc
 
 import (
+	"fmt"
 	"bytes"
 	"encoding/json"
+	"net/http"
 )
 
 const (
@@ -17,31 +19,55 @@ type (
 		Data              []byte
 		Title             string
 		TypeName          string
-		Typ               ExampleType //Example Type
+		typ               ExampleType //Example Type
 		ProtocolAndStatus string
 		Status int
 	}
 	ExampleType string
 )
 
-func newExample(v interface{}, et ExampleType, status int) *Example {
+// NewParamExample is new param example
+func NewParamExample(title string, v interface{}) *Example {
+	return newExample(title, v, exampleTypeParam, 0)
+}
+
+// NewErrorExample is new error example
+func NewErrorExample(title string, v interface{}, status int) *Example {
+	return newExample(title, v, exampleTypeError, status)
+}
+
+// NewSuccessExample is new success example with status code
+func NewSuccessExample(title string, v interface{}, status int) *Example {
+	return newExample(title, v, exampleTypeSuccess, status)
+}
+
+// NewSuccessExample200 is new success example and status OK
+func NewSuccessExample200(title string, v interface{}) *Example {
+	return newExample(title, v, exampleTypeSuccess, http.StatusOK)
+}
+
+func newExample(title string, v interface{}, et ExampleType, code int) *Example {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return nil
 	}
+	if title == "" {
+		title = "JSON Example"
+	}
 	return &Example{
 		Data:     b,
-		Title:    "JSON Example",
+		Title:    title,
 		TypeName: "json",
-		Typ:      et,
-		Status:   status,
+		typ:      et,
+		Status:   code,
+		ProtocolAndStatus: fmt.Sprintf("HTTP/1.1 %d %s", code, http.StatusText(code)),
 	}
 }
 
 func (e *Example) WriteIndentString(b *bytes.Buffer) {
 	// @apiXXXXXExample [{type}] [title]
 	b.Write(bPrefix)
-	b.Write([]byte(e.Typ))
+	b.Write([]byte(e.typ))
 	if e.TypeName != "" {
 		b.Write([]byte(" {" + e.TypeName + "}"))
 	}

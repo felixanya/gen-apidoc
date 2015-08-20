@@ -14,6 +14,34 @@ ApiError struct {
 }
 )
 
+func NewErrorParam(data interface{}) []*ApiError {
+	ps := objectAnalysis("error", data)
+	var ss []*ApiError
+	for _, p := range ps {
+		ss = append(ss, &ApiError{
+			Field:       p.Field,
+			Description: p.Description,
+			TypeName:    p.TypeName,
+			//Group:       group,
+		})
+	}
+	return ss
+}
+
+func (ad *ApiDefine) AddErrorParam(v interface{}) *ApiDefine {
+	switch t := v.(type) {
+	case *ApiError:
+		ad.Errors = append(ad.Errors, v.(*ApiError))
+	case []*ApiError:
+		list := v.([]*ApiError)
+		ad.Errors = append(ad.Errors, list...)
+	default:
+		println("failed to parameter type error", t)
+		return nil
+	}
+	return ad
+}
+
 func (ad *ApiDefine) AddError(field string, params ...string) {
 	success := &ApiError{Field: field}
 	if len(params) > 0 {
@@ -55,13 +83,11 @@ func (ad *ApiDefine) SetErrorExample(title string, v interface{}, status int) {
 }
 
 func (ad *ApiDefine) AddErrorExample(title string, v interface{}, status int) {
-	example := newExample(v, exampleTypeError, status)
-	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d ERROR", status)
-	if title != "" {
-		example.Title = title
-	} else {
-		example.Title = "Response (error)"
+	if title == "" {
+		title = "Response (error)"
 	}
+	example := newExample(title, v, exampleTypeError, status)
+	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d ERROR", status)
 	ad.ErrorExample = append(ad.ErrorExample, example)
 }
 
