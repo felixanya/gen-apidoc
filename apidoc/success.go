@@ -22,7 +22,7 @@ func NewSuccessParam(data interface{}) []*ApiSuccess {
 			Field:       p.Field,
 			Description: p.Description,
 			//Group:       group,
-			TypeName:    p.TypeName,
+			TypeName: p.TypeName,
 		})
 	}
 	return ss

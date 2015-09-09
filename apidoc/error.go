@@ -6,12 +6,12 @@ import (
 )
 
 type (
-ApiError struct {
-	Field       string
-	Description string
-	Group       string
-	TypeName    string
-}
+	ApiError struct {
+		Field       string
+		Description string
+		Group       string
+		TypeName    string
+	}
 )
 
 func NewErrorParam(data interface{}) []*ApiError {

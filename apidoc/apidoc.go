@@ -7,22 +7,22 @@ import (
 )
 
 const (
-	outputFileName      = ".apidoc_gen.go"
+	outputFileName = ".apidoc_gen.go"
 )
 
 type (
 	ApiDocument struct {
-		OutputFileName           string
-		PackageName          string
-		ApiDefines         []ApiDefine
-		writeCount int
+		OutputFileName string
+		PackageName    string
+		ApiDefines     []ApiDefine
+		writeCount     int
 	}
 )
 
 func NewDocument(packageName string) ApiDocument {
 	os.Remove(outputFileName)
 	return ApiDocument{
-		PackageName: packageName,
+		PackageName:    packageName,
 		OutputFileName: outputFileName,
 	}
 }
@@ -55,7 +55,7 @@ func (doc *ApiDocument) Write() error {
 	for _, define := range doc.ApiDefines {
 		define.WriteBytes(&bt)
 	}
-	
+
 	err := writeFile(doc.OutputFileName, bt.Bytes())
 	if err != nil {
 		return err

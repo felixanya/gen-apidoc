@@ -1,9 +1,9 @@
 package apidoc
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -21,7 +21,7 @@ type (
 		TypeName          string
 		typ               ExampleType //Example Type
 		ProtocolAndStatus string
-		Status int
+		Status            int
 	}
 	ExampleType string
 )
@@ -55,11 +55,11 @@ func newExample(title string, v interface{}, et ExampleType, code int) *Example 
 		title = "JSON Example"
 	}
 	return &Example{
-		Data:     b,
-		Title:    title,
-		TypeName: "json",
-		typ:      et,
-		Status:   code,
+		Data:              b,
+		Title:             title,
+		TypeName:          "json",
+		typ:               et,
+		Status:            code,
 		ProtocolAndStatus: fmt.Sprintf("HTTP/1.1 %d %s", code, http.StatusText(code)),
 	}
 }

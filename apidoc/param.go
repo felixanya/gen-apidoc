@@ -2,9 +2,9 @@ package apidoc
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
-	"fmt"
 )
 
 type (
@@ -15,7 +15,7 @@ type (
 		TypeName     string
 		Kind         reflect.Kind
 		DefaultValue string
-		Optional  bool
+		Optional     bool
 	}
 	AnalysisOption struct {
 		Index      int
@@ -23,7 +23,7 @@ type (
 		ParentTag  []reflect.StructTag
 		Tag        reflect.StructTag
 		ColumnName string
-		Levels []string
+		Levels     []string
 	}
 )
 
@@ -50,11 +50,11 @@ func (ad *ApiDefine) AddParam(field, description string) {
 
 func (ad *ApiDefine) AddParamByOptional(group, field, description, defaultValue string) {
 	param := &ApiParam{
-		Group: group,
-		Field:       field,
-		Description: description,
-		DefaultValue : defaultValue,
-		Optional: true,
+		Group:        group,
+		Field:        field,
+		Description:  description,
+		DefaultValue: defaultValue,
+		Optional:     true,
 	}
 	ad.Params = append(ad.Params, param)
 }
@@ -159,8 +159,8 @@ func objectAnalysisDetail(group string, rv reflect.Value, rt reflect.Type, optio
 					Field:      typField,
 					Tag:        typField.Tag,
 					ColumnName: typField.Name,
-					ParentTag: parentTag,
-					Levels: append(levels, "s"),
+					ParentTag:  parentTag,
+					Levels:     append(levels, "s"),
 				}
 				p := objectAnalysisDetail(group, valField, typ, option)
 				params = append(params, p...)
@@ -198,8 +198,8 @@ func generateApiParams(group, typeName string, option *AnalysisOption) []*ApiPar
 	if _, ok := getJSONTag(option.Tag); ok {
 
 		p := &ApiParam{
-			Field:       field,
-			Description: "It is " + field + ".",
+			Field:        field,
+			Description:  "It is " + field + ".",
 			Group:        group,
 			TypeName:     convertJsonTypeName(typeName),
 			DefaultValue: "",
@@ -223,12 +223,12 @@ func getDocTag(tag reflect.StructTag) string {
 
 func convertJsonTypeName(typeName string) string {
 	switch typeName {
-		case "int","int8","int16","int32","int64",
-			"uint","uint8","uint16","uint32","uint64":
-			return "integer"
-		case "Object[Time]":
+	case "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64":
+		return "integer"
+	case "Object[Time]":
 		return "string[RFC3339]"
-		case "ObjectId":
+	case "ObjectId":
 		return "string"
 	}
 	return typeName
@@ -249,9 +249,9 @@ func getTagText(str string) (string, bool) {
 				break
 			}
 			value = v
-//		} else if v == "omitempty" {
-//			value = ""
-//			break
+			//		} else if v == "omitempty" {
+			//			value = ""
+			//			break
 		}
 	}
 	return value, value != ""
