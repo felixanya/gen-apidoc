@@ -8,11 +8,12 @@ import (
 
 type (
 	ApiHeader struct {
-		Key          string
-		Description  string
 		Group        string
 		TypeName     string
+		Field        string
+		Description  string
 		DefaultValue string
+		Optional     bool
 	}
 )
 
@@ -34,7 +35,7 @@ func (ad *ApiDefine) SetHeaderExample(v interface{}) {
 
 func (ad *ApiDefine) AddHeader(key, description string) {
 	header := &ApiHeader{
-		Key:         key,
+		Field:       key,
 		Description: description,
 	}
 	ad.Headers = append(ad.Headers, header)
@@ -62,11 +63,17 @@ func (ah *ApiHeader) Byte() []byte {
 	if ah.TypeName != "" {
 		b.Write([]byte(" {" + ah.TypeName + "}"))
 	}
-	if ah.DefaultValue != "" {
-		b.Write([]byte(" field=" + ah.DefaultValue))
-	}
-	if ah.Key != "" {
-		b.Write([]byte(" " + ah.Key))
+	if ah.Field != "" {
+		var str string
+		if ah.Optional {
+			str = "[" + ah.Field + "]"
+		} else {
+			str = ah.Field
+		}
+		if ah.DefaultValue != "" {
+			str += "=" + ah.DefaultValue
+		}
+		b.Write([]byte(" " + str))
 	}
 	if ah.Description != "" {
 		b.Write([]byte(" " + ah.Description))

@@ -36,14 +36,14 @@ func TestChannelImage(t *testing.T) {
 
 		Convey("case(1)", func() {
 			item := Item{}
-			data := objectAnalysis("hoge", item)
+			data := NewArguments(item)
 			for i, v := range data {
 				fmt.Println(i, v)
 			}
 		})
 		Convey("case(2)", func() {
 			item := Test{}
-			data := objectAnalysis("fuga", item)
+			data := NewArguments(item)
 			for i, v := range data {
 				fmt.Println(i, v)
 			}

@@ -7,7 +7,7 @@ import (
 
 func (ad *ApiDefine) SetResponse(resp *httptest.ResponseRecorder, ok interface{}, ng interface{}) {
 	if resp.Code == http.StatusOK && ok != nil {
-		ad.SetSuccessWithExample("", ok)
+		//ad.SetSuccessWithExample("", ok)
 	} else if ng != nil {
 		//ad.SetError(ng)
 	}

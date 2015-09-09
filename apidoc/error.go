@@ -2,27 +2,26 @@ package apidoc
 
 import (
 	"bytes"
-	"fmt"
 )
 
 type (
 	ApiError struct {
-		Field       string
-		Description string
 		Group       string
 		TypeName    string
+		Field       string
+		Description string
 	}
 )
 
 func NewErrorParam(data interface{}) []*ApiError {
-	ps := objectAnalysis("error", data)
+	ps := NewArguments(data)
 	var ss []*ApiError
 	for _, p := range ps {
 		ss = append(ss, &ApiError{
+			Group:       "error",
 			Field:       p.Field,
 			Description: p.Description,
 			TypeName:    p.TypeName,
-			//Group:       group,
 		})
 	}
 	return ss
@@ -54,41 +53,6 @@ func (ad *ApiDefine) AddError(field string, params ...string) {
 		success.Field = params[2]
 	}
 	ad.Errors = append(ad.Errors, success)
-}
-
-func (ad *ApiDefine) SetErrorWithExample(title string, v interface{}, status int) {
-	ad.Errors = []*ApiError{}
-	ad.ErrorExample = []*Example{}
-	ad.AddErrorWithExample(title, v, status)
-}
-
-func (ad *ApiDefine) AddErrorWithExample(title string, v interface{}, status int) {
-	ps := objectAnalysis("error", v)
-	var ss []*ApiError
-	for _, p := range ps {
-		ss = append(ss, &ApiError{
-			Field:       p.Field,
-			Description: p.Description,
-			Group:       title,
-			TypeName:    p.TypeName,
-		})
-	}
-	ad.Errors = append(ad.Errors, ss...)
-	ad.AddErrorExample(title, v, status)
-}
-
-func (ad *ApiDefine) SetErrorExample(title string, v interface{}, status int) {
-	ad.ErrorExample = []*Example{}
-	ad.AddErrorExample(title, v, status)
-}
-
-func (ad *ApiDefine) AddErrorExample(title string, v interface{}, status int) {
-	if title == "" {
-		title = "Response (error)"
-	}
-	example := newExample(title, v, exampleTypeError, status)
-	example.ProtocolAndStatus = fmt.Sprintf("HTTP/1.1 %d ERROR", status)
-	ad.ErrorExample = append(ad.ErrorExample, example)
 }
 
 // -----------------------
